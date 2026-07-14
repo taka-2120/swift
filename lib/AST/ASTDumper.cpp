@@ -5405,6 +5405,10 @@ public:
       break;
     }
     printField(Attr->getMacroRole(), Label::always("role"));
+    if (Attr->getMacroResolution() != MacroResolution::Independent) {
+      printField(getMacroResolutionString(Attr->getMacroResolution()),
+                 Label::always("resolution"));
+    }
     if (Writer.isParsable()) {
       printList(Attr->getNames(),
                 [&](const MacroIntroducedDeclName &name, Label label) {

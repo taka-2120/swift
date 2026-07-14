@@ -13025,6 +13025,16 @@ StringRef swift::getMacroRoleString(MacroRole role) {
   }
 }
 
+StringRef swift::getMacroResolutionString(MacroResolution resolution) {
+  switch (resolution) {
+  case MacroResolution::Independent:
+    return "independent";
+
+  case MacroResolution::Deferred:
+    return "deferred";
+  }
+}
+
 std::vector<MacroIntroducedDeclNameKind>
 swift::getAllMacroIntroducedDeclNameKinds() {
   return {

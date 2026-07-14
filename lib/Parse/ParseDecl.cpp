@@ -2289,6 +2289,8 @@ Parser::parseMacroRoleAttribute(
   bool sawRole = false;
   bool sawConformances = false;
   bool sawNames = false;
+  bool sawResolution = false;
+  MacroResolution resolution = MacroResolution::Independent;
   SmallVector<MacroIntroducedDeclName, 2> names;
   SmallVector<Expr *, 2> conformances;
   auto argumentsStatus = parseList(
@@ -2321,7 +2323,7 @@ Parser::parseMacroRoleAttribute(
 
         // If there is a field name, it better be 'names'.
         if (!(fieldName.empty() || fieldName.is("names") ||
-              fieldName.is("conformances"))) {
+              fieldName.is("conformances") || fieldName.is("resolution"))) {
           diagnose(fieldNameLoc, diag::macro_attribute_unknown_label,
                    isAttached, fieldName);
           status.setIsParseError();
@@ -2368,6 +2370,37 @@ Parser::parseMacroRoleAttribute(
             diagnose(roleNameLoc, diag::macro_role_syntax_mismatch, isAttached,
                      roleName);
 
+            status.setIsParseError();
+            return status;
+          }
+
+          return status;
+        }
+
+        if (fieldName.is("resolution")) {
+          if (sawResolution) {
+            diagnose(fieldNameLoc, diag::macro_attribute_duplicate_label,
+                     isAttached, "resolution");
+          }
+          sawResolution = true;
+
+          // Parse the resolution kind.
+          Identifier resolutionName;
+          SourceLoc resolutionNameLoc;
+          if (parseIdentifier(resolutionName, resolutionNameLoc,
+                              diag::macro_attribute_expected_resolution,
+                              /*diagnoseDollarPrefix=*/true)) {
+            status.setIsParseError();
+            return status;
+          }
+
+          if (resolutionName.is("independent")) {
+            resolution = MacroResolution::Independent;
+          } else if (resolutionName.is("deferred")) {
+            resolution = MacroResolution::Deferred;
+          } else {
+            diagnose(resolutionNameLoc,
+                     diag::macro_attribute_unknown_resolution, resolutionName);
             status.setIsParseError();
             return status;
           }
@@ -2493,7 +2526,7 @@ Parser::parseMacroRoleAttribute(
   SourceRange range(Loc, rParenLoc);
   return makeParserResult(MacroRoleAttr::create(
       Context, AtLoc, range, syntax, lParenLoc, *role, names,
-      conformances, rParenLoc, /*isImplicit*/ false));
+      conformances, resolution, rParenLoc, /*isImplicit*/ false));
 }
 
 /// Guts of \c parseSingleAttrOption and \c parseSingleAttrOptionIdentifier.
@@ -4698,7 +4731,8 @@ ParserStatus Parser::parseDeclAttribute(DeclAttributes &Attributes,
     auto attr = MacroRoleAttr::create(
         Context, AtLoc, SourceRange(AtLoc, attrLoc),
         MacroSyntax::Freestanding, SourceLoc(), MacroRole::Expression, { },
-        /*conformances=*/{}, SourceLoc(), /*isImplicit*/ false);
+        /*conformances=*/{}, MacroResolution::Independent, SourceLoc(),
+        /*isImplicit*/ false);
     Attributes.add(attr);
     return makeParserSuccess();
   }

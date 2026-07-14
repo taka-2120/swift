@@ -490,11 +490,20 @@ MacroSyntax unbridge(BridgedMacroSyntax cSyntax) {
   }
 }
 
+static MacroResolution unbridge(BridgedMacroResolution cResolution) {
+  switch (cResolution) {
+  case BridgedMacroResolutionIndependent:
+    return MacroResolution::Independent;
+  case BridgedMacroResolutionDeferred:
+    return MacroResolution::Deferred;
+  }
+}
+
 BridgedMacroRoleAttr BridgedMacroRoleAttr_createParsed(
     BridgedASTContext cContext, SourceLoc atLoc, SourceRange range,
     BridgedMacroSyntax cSyntax, SourceLoc lParenLoc, BridgedMacroRole cRole,
     BridgedArrayRef cNames, BridgedArrayRef cConformances,
-    SourceLoc rParenLoc) {
+    BridgedMacroResolution cResolution, SourceLoc rParenLoc) {
   SmallVector<MacroIntroducedDeclName, 2> names;
   for (auto &n : cNames.unbridged<BridgedMacroIntroducedDeclName>())
     names.push_back(n.unbridged());
@@ -505,8 +514,8 @@ BridgedMacroRoleAttr BridgedMacroRoleAttr_createParsed(
 
   return MacroRoleAttr::create(cContext.unbridged(), atLoc, range,
                                unbridge(cSyntax), lParenLoc, unbridge(cRole),
-                               names, conformances, rParenLoc,
-                               /*implicit=*/false);
+                               names, conformances, unbridge(cResolution),
+                               rParenLoc, /*implicit=*/false);
 }
 
 BridgedOriginallyDefinedInAttr BridgedOriginallyDefinedInAttr_createParsed(

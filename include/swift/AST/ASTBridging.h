@@ -1176,13 +1176,19 @@ BridgedMacroRole BridgedMacroRole_fromString(BridgedStringRef str);
 SWIFT_NAME("getter:BridgedMacroRole.isAttached(self:)")
 BRIDGED_INLINE bool BridgedMacroRole_isAttached(BridgedMacroRole role);
 
+enum ENUM_EXTENSIBILITY_ATTR(closed) BridgedMacroResolution {
+  BridgedMacroResolutionIndependent,
+  BridgedMacroResolutionDeferred,
+};
+
 SWIFT_NAME("BridgedMacroRoleAttr.createParsed(_:atLoc:range:syntax:lParenLoc:"
-           "role:names:conformances:rParenLoc:)")
+           "role:names:conformances:resolution:rParenLoc:)")
 BridgedMacroRoleAttr BridgedMacroRoleAttr_createParsed(
     BridgedASTContext cContext, swift::SourceLoc atLoc,
     swift::SourceRange range, BridgedMacroSyntax cSyntax,
     swift::SourceLoc lParenLoc, BridgedMacroRole cRole, BridgedArrayRef cNames,
-    BridgedArrayRef cConformances, swift::SourceLoc rParenLoc);
+    BridgedArrayRef cConformances, BridgedMacroResolution cResolution,
+    swift::SourceLoc rParenLoc);
 
 SWIFT_NAME("BridgedOriginallyDefinedInAttr.createParsed(_:atLoc:range:"
            "moduleName:platform:version:)")

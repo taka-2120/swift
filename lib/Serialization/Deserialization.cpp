@@ -6659,12 +6659,14 @@ llvm::Error DeclDeserializer::deserializeDeclCommon() {
         bool isImplicit;
         uint8_t rawMacroSyntax;
         uint8_t rawMacroRole;
+        uint8_t rawMacroResolution;
         uint64_t numNames;
         uint64_t numConformances;
         ArrayRef<uint64_t> introducedDeclNames;
         serialization::decls_block::MacroRoleDeclAttrLayout::
             readRecord(scratch, isImplicit, rawMacroSyntax, rawMacroRole,
-                       numNames, numConformances, introducedDeclNames);
+                       rawMacroResolution, numNames, numConformances,
+                       introducedDeclNames);
         auto role = *getActualMacroRole(rawMacroRole);
         SmallVector<MacroIntroducedDeclName, 1> names;
         unsigned nameIdx = 0;
@@ -6708,7 +6710,8 @@ llvm::Error DeclDeserializer::deserializeDeclCommon() {
         Attr = MacroRoleAttr::create(
             ctx, SourceLoc(), SourceRange(),
             static_cast<MacroSyntax>(rawMacroSyntax), SourceLoc(), role, names,
-            conformances, SourceLoc(), isImplicit);
+            conformances, static_cast<MacroResolution>(rawMacroResolution),
+            SourceLoc(), isImplicit);
         break;
       }
 
