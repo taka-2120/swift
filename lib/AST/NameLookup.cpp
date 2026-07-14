@@ -1871,6 +1871,45 @@ SmallVector<MacroDecl *, 1> namelookup::lookupMacros(DeclContext *dc,
   return choices;
 }
 
+/// Whether the given macro declaration has explicitly opted out of the
+/// simultaneous macro expansion model for its freestanding uses via
+/// 'resolution: deferred', so that name lookup within its arguments is
+/// permitted to trigger and observe other macro expansions.
+static bool isDeferredResolutionMacro(MacroDecl *macro) {
+  bool sawDeferred = false;
+  for (auto attr : macro->getAttrs().getAttributes<MacroRoleAttr>()) {
+    if (attr->getMacroSyntax() != MacroSyntax::Freestanding)
+      continue;
+
+    if (attr->getMacroResolution() == MacroResolution::Deferred) {
+      // Deferral is only sound for roles that introduce no names visible
+      // to name lookup, so that lookup never needs to expand the deferred
+      // macro itself.
+      switch (attr->getMacroRole()) {
+      case MacroRole::Expression:
+        sawDeferred = true;
+        continue;
+
+      case MacroRole::Declaration:
+        if (attr->getNames().empty()) {
+          sawDeferred = true;
+          continue;
+        }
+        break;
+
+      default:
+        break;
+      }
+    }
+
+    // Any other freestanding role follows the default independence rule:
+    // it may introduce names, for which deferral would reintroduce
+    // expansion cycles.
+    return false;
+  }
+  return sawDeferred;
+}
+
 bool
 namelookup::isInMacroArgument(SourceFile *sourceFile, SourceLoc loc) {
   bool inMacroArgument = false;
@@ -1891,6 +1930,23 @@ namelookup::isInMacroArgument(SourceFile *sourceFile, SourceLoc loc) {
 
         if (macro.getFreestanding()) {
           inMacroArgument = true;
+
+          // A freestanding expression macro can explicitly opt out of the
+          // simultaneous expansion model with 'resolution: deferred'. If
+          // every macro this reference can resolve to has opted out, names
+          // within its arguments may resolve into other macro expansions,
+          // so keep looking outward for an enclosing independent macro.
+          auto &ctx = sourceFile->getASTContext();
+          if (ctx.LangOpts.hasFeature(Feature::DeferredMacroResolution)) {
+            auto *moduleScope = sourceFile->getModuleScopeContext();
+            auto results =
+                lookupMacros(moduleScope, macro.getModuleName(),
+                             macro.getMacroName(),
+                             getFreestandingMacroRoles());
+            if (!results.empty() &&
+                llvm::all_of(results, isDeferredResolutionMacro))
+              inMacroArgument = false;
+          }
         } else if (macro.getAttr()) {
           auto *moduleScope = sourceFile->getModuleScopeContext();
           auto results =

@@ -32,6 +32,25 @@ enum class MacroSyntax: uint8_t {
   Attached,
 };
 
+/// Describes how references within the arguments of a macro expansion are
+/// resolved relative to other macro expansions in the same scope.
+enum class MacroResolution : uint8_t {
+  /// The default behavior specified by SE-0389: the macro's arguments are
+  /// type-checked as if all macros in the same scope expand simultaneously,
+  /// so names introduced by other macro expansions are not visible.
+  Independent,
+
+  /// The macro has explicitly opted out of the simultaneous-expansion model:
+  /// type-checking its arguments may trigger and observe the expansion of
+  /// attached macros in the same scope. Only permitted for freestanding
+  /// expression macros, which introduce no names of their own.
+  Deferred,
+};
+
+/// Retrieve the string form of the given macro resolution, as written in
+/// the 'resolution:' argument of the corresponding attribute.
+StringRef getMacroResolutionString(MacroResolution resolution);
+
 enum class MacroRoleBits: uint8_t {
 #define MACRO_ROLE(Name, Description) Name,
 #include "swift/Basic/MacroRoles.def"

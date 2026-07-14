@@ -8456,6 +8456,9 @@ ERROR(invalid_macro_role_for_macro_syntax,none,
       (unsigned))
 ERROR(macro_cannot_introduce_names,none,
       "'%0' macros are not allowed to introduce names", (StringRef))
+ERROR(macro_deferred_resolution_invalid_role,none,
+      "'resolution: deferred' can only be used with freestanding macros "
+      "that do not introduce names", ())
 ERROR(macro_nonobserving_accessor_missing_from_expansion,none,
       "expansion of macro %0 did not produce a non-observing accessor "
       "(such as 'get') as expected",

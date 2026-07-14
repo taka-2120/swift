@@ -8752,6 +8752,28 @@ void AttributeChecker::visitCompilerInitializedAttr(
 }
 
 void AttributeChecker::visitMacroRoleAttr(MacroRoleAttr *attr) {
+  if (attr->getMacroResolution() == MacroResolution::Deferred) {
+    if (!Ctx.LangOpts.hasFeature(Feature::DeferredMacroResolution) &&
+        !D->getDeclContext()->isInSwiftinterface()) {
+      Ctx.Diags.diagnose(attr->getLocation(),
+                         diag::attribute_requires_experimental_feature, attr,
+                         "DeferredMacroResolution");
+    }
+
+    // Deferred resolution is only sound for macros that introduce no
+    // names of their own: freestanding expression macros, and freestanding
+    // declaration macros without a 'names:' list (such as '#Preview').
+    bool introducesNoNames =
+        attr->getMacroSyntax() == MacroSyntax::Freestanding &&
+        (attr->getMacroRole() == MacroRole::Expression ||
+         (attr->getMacroRole() == MacroRole::Declaration &&
+          attr->getNames().empty()));
+    if (!introducesNoNames) {
+      diagnose(attr->getLocation(),
+               diag::macro_deferred_resolution_invalid_role);
+    }
+  }
+
   switch (attr->getMacroSyntax()) {
   case MacroSyntax::Freestanding: {
     switch (attr->getMacroRole()) {

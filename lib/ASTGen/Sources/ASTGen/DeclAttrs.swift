@@ -1471,10 +1471,12 @@ extension ASTGenVisitor {
 
       var names: [BridgedMacroIntroducedDeclName] = []
       var conformances: [BridgedExpr] = []
+      var resolution: BridgedMacroResolution = .independent
 
       enum Argument: UInt8 {
         case names
         case conformances
+        case resolution
         case invalid
       }
       // Assume we're in 'names:' arguments.
@@ -1494,6 +1496,11 @@ extension ASTGenVisitor {
               // TODO: Diagnose duplicated 'conformances:'.
             }
             argState.current = .conformances
+          case .identifier("resolution"):
+            if argState.hasSeen(.resolution) {
+              // TODO: Diagnose duplicated 'resolution:'.
+            }
+            argState.current = .resolution
           default:
             // Invalid label.
             // TODO: Diagnose `no argument with label '\(label)'`.
@@ -1513,6 +1520,21 @@ extension ASTGenVisitor {
           }
         case .conformances:
           conformances.append(self.generate(expr: arg.expression))
+        case .resolution:
+          if let identifier = arg.expression.as(DeclReferenceExprSyntax.self),
+             identifier.argumentNames == nil {
+            switch identifier.baseName.rawText {
+            case "independent":
+              resolution = .independent
+            case "deferred":
+              resolution = .deferred
+            default:
+              // TODO: Diagnose unknown macro resolution.
+              break
+            }
+          } else {
+            // TODO: Diagnose unknown macro resolution.
+          }
         case .invalid:
           // Ignore the value.
           break
@@ -1528,6 +1550,7 @@ extension ASTGenVisitor {
         role: role,
         names: names.lazy.bridgedArray(in: self),
         conformances: conformances.lazy.bridgedArray(in: self),
+        resolution: resolution,
         rParenLoc: self.generateSourceLoc(node.rightParen)
       )
     }

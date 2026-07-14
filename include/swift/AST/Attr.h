@@ -3383,6 +3383,7 @@ class MacroRoleAttr final
 
   MacroSyntax syntax;
   MacroRole role;
+  MacroResolution resolution;
   unsigned numNames;
   unsigned numConformances;
   SourceLoc lParenLoc, rParenLoc;
@@ -3390,8 +3391,8 @@ class MacroRoleAttr final
   MacroRoleAttr(SourceLoc atLoc, SourceRange range, MacroSyntax syntax,
                 SourceLoc lParenLoc, MacroRole role,
                 ArrayRef<MacroIntroducedDeclName> names,
-                ArrayRef<Expr *> conformances, SourceLoc rParenLoc,
-                bool implicit);
+                ArrayRef<Expr *> conformances, MacroResolution resolution,
+                SourceLoc rParenLoc, bool implicit);
 
 public:
   static MacroRoleAttr *create(ASTContext &ctx, SourceLoc atLoc,
@@ -3399,6 +3400,7 @@ public:
                                SourceLoc lParenLoc, MacroRole role,
                                ArrayRef<MacroIntroducedDeclName> names,
                                ArrayRef<Expr *> conformances,
+                               MacroResolution resolution,
                                SourceLoc rParenLoc, bool implicit);
 
   size_t numTrailingObjects(OverloadToken<MacroIntroducedDeclName>) const {
@@ -3414,6 +3416,7 @@ public:
 
   MacroSyntax getMacroSyntax() const { return syntax; }
   MacroRole getMacroRole() const { return role; }
+  MacroResolution getMacroResolution() const { return resolution; }
   ArrayRef<MacroIntroducedDeclName> getNames() const;
   ArrayRef<Expr *> getConformances() const;
   MutableArrayRef<Expr *> getConformances();

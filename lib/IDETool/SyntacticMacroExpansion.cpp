@@ -149,6 +149,7 @@ MacroDecl *SyntacticMacroExpansionInstance::getSynthesizedMacroDecl(
     auto *attr = MacroRoleAttr::create(ctx, /*atLoc=*/{}, /*range=*/{}, syntax,
                                        /*lParenLoc=*/{}, role, /*names=*/{},
                                        /*conformances=*/{},
+                                       MacroResolution::Independent,
                                        /*rParenLoc=*/{}, /*implicit=*/true);
     macro->addAttribute(attr);
   }

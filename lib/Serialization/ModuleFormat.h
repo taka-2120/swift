@@ -59,7 +59,7 @@ const uint16_t SWIFTMODULE_VERSION_MAJOR = 0;
 /// it just ensures a conflict if two people change the module format.
 /// Don't worry about adhering to the 80-column limit for this line.
 const uint16_t SWIFTMODULE_VERSION_MINOR =
-    1010; // metatype extension flag
+    1011; // macro resolution in MacroRole attr
 
 /// A standard hash seed used for all string hashes in a serialized module.
 ///
@@ -2676,6 +2676,8 @@ namespace decls_block {
     BCFixed<1>,                // implicit flag
     BCFixed<1>,                // macro syntax
     MacroRoleField,            // macro role
+    BCFixed<1>,                // macro resolution (independent = 0,
+                               //                   deferred = 1)
     BCVBR<5>,                  // number of names
     BCVBR<5>,                  // number of conformances
     BCArray<IdentifierIDField> // introduced names, where each is encoded as

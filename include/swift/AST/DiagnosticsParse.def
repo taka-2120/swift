@@ -2122,6 +2122,11 @@ ERROR(macro_attribute_missing_label,none,
       (bool, StringRef))
 ERROR(macro_attribute_unknown_name_kind,PointsToFirstBadToken,
       "unknown introduced name kind %0", (Identifier))
+ERROR(macro_attribute_unknown_resolution,PointsToFirstBadToken,
+      "unknown macro resolution %0; expected 'independent' or 'deferred'",
+      (Identifier))
+ERROR(macro_attribute_expected_resolution,PointsToFirstBadToken,
+      "expected a macro resolution of 'independent' or 'deferred'", ())
 ERROR(macro_attribute_unknown_argument_form,PointsToFirstBadToken,
       "introduced name argument should be a name", ())
 ERROR(macro_attribute_introduced_name_requires_argument,PointsToFirstBadToken,

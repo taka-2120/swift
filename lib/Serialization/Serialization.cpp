@@ -3673,7 +3673,9 @@ class Serializer::DeclSerializer : public DeclVisitor<DeclSerializer> {
       MacroRoleDeclAttrLayout::emitRecord(
           S.Out, S.ScratchRecord, abbrCode, theAttr->isImplicit(),
           static_cast<uint8_t>(theAttr->getMacroSyntax()),
-          rawMacroRole, numNames, numConformances,
+          rawMacroRole,
+          static_cast<uint8_t>(theAttr->getMacroResolution()),
+          numNames, numConformances,
           introducedDeclNames);
       return;
     }
